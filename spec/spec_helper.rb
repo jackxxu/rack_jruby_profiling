@@ -9,5 +9,5 @@ require 'spec/autorun'
 require 'rack/test'
 
 Spec::Runner.configure do |config|
-  
+
 end

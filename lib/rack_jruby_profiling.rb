@@ -21,7 +21,7 @@ module Rack
       :print_graph_html => 'text/html',
       :print_tree_html => 'text/html'
     }
-    
+
     DEFAULT_PRINTER = :print_tree_html
 
     PRINTER_METHODS = {
@@ -31,7 +31,7 @@ module Rack
       :graph_html => :print_graph_html,
       :tree_html => :print_tree_html
     }
-    
+
     FILE_NAMING = {
       :print_flat_text => 'flat',
       :print_graph_text => 'graph',
@@ -49,7 +49,7 @@ module Rack
     def call(env)
       profile(env)
     end
-    
+
     def profile_file
       @profile_file
     end
@@ -74,7 +74,7 @@ module Rack
           end
         end
       end
-      
+
       def filename(printer, env)
         extension = printer.to_s.include?("html") ? "html" : "txt"
         "#{::File.basename(env['PATH_INFO'])}_#{FILE_NAMING[printer]}_#{@uniq_id}.#{extension}"
@@ -95,7 +95,7 @@ module Rack
         end
         headers
       end
-      
+
       def boolean(parameter)
         return false if parameter.nil?
         return true if %w{t true y yes}.include?(parameter.downcase)
