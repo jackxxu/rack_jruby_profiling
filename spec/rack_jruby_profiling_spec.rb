@@ -33,7 +33,7 @@ describe Rack::JRubyProfiler do
 
   before :each do
     @path = 'profile_test'
-    @request = Rack::MockRequest.env_for("/#{@path}")
+    @request = Rack::MockRequest.env_for("/#{@path}?profile=t")
   end
 
   after :each do
@@ -42,8 +42,8 @@ describe Rack::JRubyProfiler do
     end
   end
 
-  it "shouldn't profile is the no_profile query parameter is set" do
-    @request = Rack::MockRequest.env_for("/profile_test?no_profile=true")
+  it "shouldn't profile unless the profile query parameter is set" do
+    @request = Rack::MockRequest.env_for("/profile_test")
     response = response_for( basic_application(200), @request )
     response.should == basic_application(200).call(nil)
   end
@@ -53,11 +53,11 @@ describe Rack::JRubyProfiler do
       response = response_for( basic_application(code), @request )
       response[0].should == 200
       response[1].should include("Content-Type")
-      response[1]["Content-Type"].should == 'text/html'
+      response[1]["Content-Type"].should == 'text/plain'
       @profiler.profile_file.should_not be_nil
-      response[2].class.should == String
-      response[2].length.should > 0
-      response[2].should == File.read(@profiler.profile_file)
+      response[2].should respond_to(:each)
+      str = ""; response[2].each {|b| str << b }
+      str.should == File.read(@profiler.profile_file)
     end
   end
 
@@ -67,7 +67,7 @@ describe Rack::JRubyProfiler do
   end
 
   class Tuple
-    TRUISH = %w{true t yes y}
+    TRUISH = %w{true t yes y 1}
     attr_reader :profile_type, :content_type, :partial_filename, :extension
 
     def initialize(profile_type, content_type, partial_filename=nil)
@@ -85,9 +85,9 @@ describe Rack::JRubyProfiler do
   [
     Tuple.new(:flat, :plain),
     Tuple.new(:graph, :plain),
-    Tuple.new(:call_tree, :plain),
-    Tuple.new(:graph_html, :html, :graph),
-    Tuple.new(:tree_html, :html, :call_tree)
+    # Tuple.new(:call_tree, :plain),
+    # Tuple.new(:graph_html, :html, :graph),
+    # Tuple.new(:tree_html, :html, :call_tree)
   ].each do |tuple|
     it "should construct a #{tuple.profile_type} profile with content type of #{tuple.content_type} and download it" do
       @request = Rack::MockRequest.env_for("/profile_test?profile=#{tuple.profile_type}&download=#{tuple.download}")
@@ -100,8 +100,9 @@ describe Rack::JRubyProfiler do
       @profiler.profile_file.should =~ /profile_test_#{tuple.partial_filename}_\d+\.#{tuple.extension}$/
       response[1].should include("Content-Disposition")
       response[1]["Content-Disposition"].should =~ Regexp.compile(%(attachment; filename="#{File.basename(@profiler.profile_file)}"))
-      response[2].class.should == String
-      response[2].should == File.read(@profiler.profile_file)
+      response[2].should respond_to(:each)
+      str = ""; response[2].each {|b| str << b }
+      str.should == File.read(@profiler.profile_file)
     end
   end
 end
