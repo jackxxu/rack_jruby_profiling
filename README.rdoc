@@ -1,41 +1,29 @@
 = rack_jruby_profiling
 
-To use this in your application you need to have JRubyProf (http://github.com/danlucraft/jruby-prof) installed and available, and your application should be running on the JVM (of course).
+To use this in your application your application should be running on the JVM with JRuby (of course).
 
 This is used like any other Rack middleware:
 
   require 'rack_jruby_profiling'
   use Rack::JRubyProfiler
   
-You can selectively turn off profiling on any request by adding "no_profile=<t,true,y,yes>" to the query parameter list.
+You can selectively turn on profiling on any request by adding "profile=<t,true,y,yes>" to the query parameter list.
 
 The results of the profiling are streamed directly to your client. If you would like to download the file that is generated instead, add a "download=<t,true,y,yes>" parameter to your request.
 
-JRubyProf supports 5 different profile outputs. You can add "profile=<flat,graph,call_tree,graph_html,tree_html>" to specify which you want to use. The default is "tree_html". See http://danlucraft.com/blog/2010/03/jruby-prof/ for more information on these outputs.
+There are two outputs supported by the built-in profiler at the moment. You can add "profile=<flat,graph>" to specify which you want to use. The default is "graph". See http://danlucraft.com/blog/2011/03/built-in-profiler-in-jruby-1.6/ for more information on these outputs.
 
 * flat => plain text 
 * graph => plain text
-* call_tree => plain text
-* graph_html => HTML
-* tree_html => HTML
 
 == Caveats
 * JRubyProf generates files for the profiling information. These files are generated in the current working directory. This middleware doesn't attempt to delete those files after they are generated. That's an exercise left to the user.
-* JRubyProf was compiled under Java 1.6. If you don't have that version of the JDK available you will need to recompile danlucraft's jruby-prof.jar on your platform version. If you get an error like "cannot link Java class org.jruby.prof.JRubyProf, probable missing dependency: Bad version number in .class file" it indicates that your version of the JVM is not in sync with jruby-prof. I will NOT attempt to embed jruby-prof in this project.
-
-== Need Help?
-If you need help using this library, or recompiling jruby-prof, just open a ticket in the Issues section of this repository (http://github.com/jacaetevha/rack_jruby_profiling/issues).
 
 == Test
 Wanna run my tests? Cool. You'll need the following. They are all defined in the Gemfile, so if you are using Bundler, you can just
 
 	bundle check
 	bundle install (if need be)
-
-* jruby-prof (Duh?!)
-* rspec
-* rack-test
-* rack
 
 == Note on Patches/Pull Requests
  
@@ -48,4 +36,4 @@ Wanna run my tests? Cool. You'll need the following. They are all defined in the
 
 == Copyright
 
-Copyright (c) 2010 Jason Rogers. See LICENSE for details.
+Copyright (c) 2010, 2011 Jason Rogers. See LICENSE for details.
