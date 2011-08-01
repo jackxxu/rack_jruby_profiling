@@ -1,6 +1,6 @@
 = rack_jruby_profiling
 
-To use this in your application your application should be running on the JVM with JRuby (of course).
+To use this in your application your application should be running JRuby with the --profile.api switch turned on.
 
 This is used like any other Rack middleware:
 
