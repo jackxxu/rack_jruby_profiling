@@ -35,6 +35,7 @@ module Rack
     # Accepts a :times => [Fixnum] option defaulting to 1.
     def initialize(app, options = {})
       @app = app
+      @stickshift = defined?(::Stickshift) && Stickshift.enabled?
       @times = (options[:times] || 1).to_i
     end
 
@@ -53,14 +54,22 @@ module Rack
         if mode.nil?
           @app.call(env)
         else
+          body = StringIO.new
           @printer = parse_printer(mode)
           count  = (request.params.delete('times') || @times).to_i
+          if @stickshift && count == 1
+            Stickshift.output, prev_output = body, Stickshift.output
+          end
           result = JRuby::Profiler.profile do
             count.times { @app.call(env) }
           end
           @uniq_id = Java::java.lang.System.nano_time
           @profile_file = ::File.expand_path( filename(@printer, env) )
-          [200, headers(@printer, request, env), print(@printer, request, env, result)]
+          if prev_output
+            Stickshift.output.puts
+            Stickshift.output = prev_output
+          end
+          [200, headers(@printer, request, env), print(body, @printer, request, env, result)]
         end
       end
 
@@ -69,10 +78,9 @@ module Rack
         "#{::File.basename(env['PATH_INFO'])}_#{printer}_#{@uniq_id}.#{extension}"
       end
 
-      def print(printer, request, env, result)
+      def print(body, printer, request, env, result)
         return result if printer.nil?
         filename = filename(printer, env)
-        body = StringIO.new
         PRINTERS[printer].new(result).printProfile(java.io.PrintStream.new(body.to_outputstream))
         body.rewind
         [body.string.tap {|s| ::File.open(filename, "w") {|f| f << s } }]
