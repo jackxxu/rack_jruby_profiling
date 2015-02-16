@@ -61,7 +61,7 @@ module Rack
             Stickshift.output, prev_output = body, Stickshift.output
           end
           result = JRuby::Profiler.profile do
-            count.times { @app.call(env) }
+            count.times { @app.call(env.clone) }
           end
           @uniq_id = Java::java.lang.System.nano_time
           @profile_file = ::File.expand_path( filename(@printer, env) )
